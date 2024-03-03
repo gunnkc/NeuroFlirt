@@ -28,7 +28,7 @@ class RizzCalculator:
         self._server = setup_server(self.IP, self.PORT, self._raw_inputs)
 
         # Threads -- need to run each process in "parallel"
-        self._muse_thread = threading.Thread(target=self.server.serve_forever, args=(self.POLL_TIME))
+        self._muse_thread = threading.Thread(target=self._server.serve_forever, args=(self.POLL_TIME))
         self._batch_thread = threading.Thread(target=self._batch_inputs)
         self._prediction_thread = threading.Thread(target=self._make_predictions)
 

@@ -27,7 +27,7 @@ class Engagement(Enum):
     HIGHLY_INTERESTED = 7
     VERY_INTERESTED = 8
     EXTREMELY_INTERESTED = 9
-    VERY_INTERESTED = 10
+    MAXIMALLY_INTERESTED = 10
 
 # Arousal 0-8
 class Attraction(Enum):

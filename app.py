@@ -4,7 +4,7 @@ import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 
-from NeuroHack.rizz_calculator import RizzCalculator
+from rizz_calculator import RizzCalculator
 from utils import parse_metrics, get_status
 
 RELOAD_SECS = 1
@@ -14,12 +14,15 @@ model = RizzCalculator()
 initial = True
 
 def main():
-    st.title("CharismaPulse")
+    global model
+    global initial
+
+    st.title("ElectroFlirt")
     st.markdown('By Ethan K, Gunn C, Michael P, Nathan C')
 
     if 'data' not in st.session_state:
         if initial:
-            st.write('Retrieving data -- May take up to 10 seconds')
+            st.write('Retrieving data -- May take up to 30 seconds')
             sleep(15)
             initial = False
         st.session_state['metrics'] = model.get_metrics()

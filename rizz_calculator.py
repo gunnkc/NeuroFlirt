@@ -1,7 +1,10 @@
 import threading
+from joblib import load
 from queue import Queue
+import pandas as pd
 
 from Muse_input.muse_input import setup_server
+from utils import generate_summary_stats_training_data
 
 """
 TODO:
@@ -14,8 +17,8 @@ TODO:
 class RizzCalculator:
     IP = "0.0.0.0"
     PORT = 5000
-    POLL_TIME = 0.03
-    ROW_BATCH_SIZE = 990
+    POLL_TIME = 0.5
+    ROW_BATCH_SIZE = 60
 
     def __init__(self):
         self.running = False
@@ -26,6 +29,9 @@ class RizzCalculator:
 
         # Server - need access to server to shut it down later
         self._server = setup_server(self.IP, self.PORT, self._raw_inputs)
+
+        # Model - responsible for getting all metrics
+        self._model = load("./model/where_my_hug_at.joblib")
 
         # Threads -- need to run each process in "parallel"
         self._muse_thread = threading.Thread(target=self._server.serve_forever, args=(self.POLL_TIME))
@@ -55,8 +61,14 @@ class RizzCalculator:
         Sends batch of most recent metrics.
         No duplicates should be sent.
         """
-        # TODO: define metrics and return them
-        raise NotImplementedError
+        metrics = []
+
+        while self._metrics.not_empty:
+            item = self._metrics.get()
+            metrics.append(item)
+            self._metrics.task_done()
+        
+        return metrics
     
 
     def _make_predictions(self):
@@ -68,8 +80,8 @@ class RizzCalculator:
             batched_input = self._batched_inputs.get()
             # Make prediction
             self._batched_inputs.task_done()
-            # Calculate metrics and push on to queue
-            self._metrics.put()
+            res = self._model.predict(batched_input)
+            self._metrics.put(res)
     
 
     def _batch_inputs(self, address: str, *args):
@@ -78,14 +90,15 @@ class RizzCalculator:
         and extracts features to predict on.
         """
         while self.running:
-            batch = []
+            batch = {"TP9": [], "AF7": [], "AF8": [], "TP10": []}
 
-            while len(batch) < self.ROW_BATCH_SIZE:
-                item = self._raw_inputs.get()
-                batch.append(item)
+            while len(batch['TP9']) < self.ROW_BATCH_SIZE:
+                inputs = self._raw_inputs.get()
+                for (item, key) in zip(inputs, batch):
+                    batch[key] = batch[key].append(item)
                 self._raw_inputs.task_done()
             
             if batch:
-                # process batch
-                processed = batch
-                self._batched_inputs.put(processed)
+                batch_df = pd.DataFrame(batch)
+                processed = generate_summary_stats_training_data(batch_df, self.ROW_BATCH_SIZE)
+                self._metrics.put(processed)

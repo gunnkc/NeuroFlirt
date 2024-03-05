@@ -22,6 +22,7 @@ NeuroFlirt introduces a groundbreaking approach to online dating by leveraging b
 
 - **Data Processing:** Utilizes regional averaging for clarity from 14 electrode channels.
 - **Model:** LightGBM with predictions made every 30 seconds and a regression model achieving ~2 RMSE on a scale of 0 - 8.
+- **Model Pipeline:** Included in model/neuroflirt_model.ipynb
 
 ## Ethical Considerations
 
